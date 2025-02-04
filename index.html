@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <script src="../../../res/ver.js"></script>
+        <script src="../../../res/script/jquery.js"></script>
+        <script src="../../../res/script/WindowsCommunication.js"></script>
+        <link rel="stylesheet" href="../../../res/style/fonts.css">
+        <link rel="stylesheet" href="../../../res/style/shellstyle.css">
+        <link rel="stylesheet" href="style.css">
+        <script src="script.js"></script>
+        <title>CheckDev64 beta</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: rgb(49, 49, 49);
+                color: #fff;
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .sidebar {
+                width: 250px;
+                background: #2b2b2b;
+                color: #fff;
+                
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .sidebar h1 {
+                padding: 20px;
+                font-size: 24px;
+                margin-bottom: 20px;
+                color: #ff0000;
+            }
+            .tabs {
+                display: flex;
+                flex-direction: column;
+            }
+            .tab-button {
+                padding: 10px;
+                margin: 5px 0;
+                background: #2b2b2b;
+                border: none;
+                color: #fff;
+                text-align: left;
+                cursor: pointer;
+            }
+            .tab-button:hover {
+                background: #2b2b2b;
+            }
+            .tab-button.active {
+                background: #dd0000;
+            }
+            .main-content {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                background: rgb(49, 49, 49);
+            }
+            .tab-content {
+                display: none;
+            }
+            .tab-content.active {
+                display: block;
+            }
+            .info {
+                margin-bottom: 20px;
+            }
+            .info h2 {
+                margin-top: 0;
+                color: #dd0000;
+            }
+            .benchmark-results {
+                margin-top: 20px;
+                padding: 10px;
+                background: rgb(49, 49, 49);
+                border: 1px solid #ddd;
+            }
+            .benchmark-results p {
+                margin: 5px 0;
+            }
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                background: #ff0000;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+            .button:hover {
+                background: #ff0000;
+            }
+            .system-info {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .system-info img {
+                width: 100px;
+                height: 100px;
+                margin-right: 20px;
+            }
+            .system-info .details {
+                flex: 1;
+            }
+            .system-info .details p {
+                margin: 5px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sidebar">
+            <h1>CheckDev64 beta (R8.1 Build5 VER2)</h1>
+            <div class="tabs">
+                <button class="tab-button active" data-tab="system-info">Система</button>
+                <button class="tab-button" data-tab="benchmark">Бенчмарк</button>
+                <button class="tab-button" data-tab="simulated-info">О системе</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="system-info" class="tab-content active">
+                <div class="info">
+                    <h2>Процессор</h2>
+                    <p id="cpu-info">Загрузка информации о процессоре...</p>
+                </div>
+                <div class="info">
+                    <h2>Оперативная память</h2>
+                    <p id="ram-info">Загрузка информации об оперативной памяти...</p>
+                </div>
+                <div class="info">
+                    <h2>Графический ускоритель</h2>
+                    <p id="gpu-info">Загрузка информации о графическом ускорителе...</p>
+                </div>
+            </div>
+            <div id="benchmark" class="tab-content">
+                <div class="info">
+                    <h2>Бенчмарк процессора</h2>
+                    <p>Нажмите кнопку ниже, чтобы запустить тест производительности процессора.</p>
+                    <button class="button" onclick="startBenchmark()">Запустить бенчмарк</button>
+                </div>
+                <div class="benchmark-results">
+                    <h3>Результаты бенчмарка</h3>
+                    <p id="benchmark-result"></p>
+                </div>
+            </div>
+            <div id="simulated-info" class="tab-content">
+                <div class="system-info">
+                    <img id="osLogo" alt="OS Logo">
+                    <div class="details">
+                        <p class="productName">err</p>
+                        <p class="productName2">err</p>
+                        <p class="build">err</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <script>
+            const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-tab');
+
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        button.classList.add('active');
+        document.getElementById(targetTab).classList.add('active');
+    });
+});
+
+const cpuInfo = document.getElementById('cpu-info');
+if (navigator.hardwareConcurrency) {
+    cpuInfo.textContent = `Количество ядер: ${navigator.hardwareConcurrency}`;
+} else {
+    cpuInfo.textContent = 'Информация о процессоре недоступна.';
+}
+
+const ramInfo = document.getElementById('ram-info');
+if (navigator.deviceMemory) {
+    ramInfo.textContent = `Объем оперативной памяти: ${navigator.deviceMemory} GB`;
+} else {
+    ramInfo.textContent = 'Информация об оперативной памяти недоступна. юзай ХРОМ!!!!!!!! ';
+}
+
+const gpuInfo = document.getElementById('gpu-info');
+const canvas = document.createElement('canvas');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+if (gl) {
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    if (debugInfo) {
+        gpuInfo.textContent = `Графический ускоритель: ${gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}`;
+    } else {
+        gpuInfo.textContent = 'Информация о GPU недоступна.';
+    }
+} else {
+    gpuInfo.textContent = 'WebGL не поддерживается.';
+}
+
+function startBenchmark() {
+    const benchmarkResult = document.getElementById('benchmark-result');
+    benchmarkResult.textContent = 'Запуск бенчмарка...';
+
+    const runs = 5; 
+    const durations = [10, 50, 100]; 
+    let totalScore = 0;
+
+    setTimeout(() => {
+        let results = [];
+
+        for (let i = 0; i < runs; i++) {
+            durations.forEach(duration => {
+                let count = 0;
+                const startTime = performance.now();
+                const endTime = startTime + duration;
+
+                while (performance.now() < endTime) {
+                    Math.random();
+                    count++;
+                }
+
+                const score = count / duration; 
+                totalScore += score;
+                results.push(`Прогон ${i + 1} (${duration} мс): ${count.toLocaleString()} операций, ${score.toFixed(2)} баллов/мс`);
+            });
+        }
+
+        const averageScore = (totalScore / (runs * durations.length)).toFixed(2);
+        results.push(`Средний результат: ${averageScore} баллов`);
+
+        benchmarkResult.innerHTML = results.join('<br>');
+    }, 100);
+}
+
+        </script>
+    </body>
+    </html>
